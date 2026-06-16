@@ -13,7 +13,7 @@ export function WhatsAppCTA() {
     "https://wa.me/447000000000?text=Hi%20DOGSPA!%20I'd%20like%20to%20enquire%20about%20your%20grooming%20services.";
 
   return (
-    <div className="fixed bottom-6 right-6 z-50 hidden sm:flex flex-col items-end gap-3">
+    <div className="fixed bottom-4 right-4 sm:bottom-6 sm:right-6 z-50 flex flex-col items-end gap-3">
       {/* Expanded Chat Bubble */}
       <AnimatePresence>
         {isExpanded && (
