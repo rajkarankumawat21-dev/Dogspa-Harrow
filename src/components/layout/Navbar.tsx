@@ -125,7 +125,7 @@ export function Navbar() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-40 lg:hidden"
+            className="fixed inset-0 z-[60] lg:hidden"
           >
             {/* Backdrop */}
             <motion.div
@@ -144,6 +144,14 @@ export function Navbar() {
               transition={{ type: "spring", damping: 25, stiffness: 200 }}
               className="absolute right-0 top-0 h-full w-80 max-w-[85vw] bg-white shadow-2xl"
             >
+              {/* Close Button Inside Menu */}
+              <button
+                onClick={() => setIsMobileMenuOpen(false)}
+                className="absolute top-5 right-4 p-2 text-navy hover:text-gold transition-colors z-10"
+                aria-label="Close menu"
+              >
+                <X className="w-6 h-6" />
+              </button>
               <div className="flex flex-col h-full pt-20 px-6">
                 {/* Nav Links */}
                 <div className="flex flex-col gap-2">
