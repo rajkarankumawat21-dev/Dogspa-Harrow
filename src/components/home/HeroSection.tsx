@@ -7,7 +7,7 @@ import { Calendar, Sparkles, ChevronDown } from "lucide-react";
 
 export function HeroSection() {
   return (
-    <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
+    <section className="relative min-h-[100dvh] flex items-center justify-center overflow-hidden pt-20 sm:pt-0">
       {/* Background Image */}
       <div className="absolute inset-0 z-0">
         <Image
@@ -51,7 +51,7 @@ export function HeroSection() {
       </div>
 
       {/* Hero Content */}
-      <div className="relative z-10 max-w-5xl mx-auto px-4 sm:px-6 text-center">
+      <div className="relative z-10 max-w-5xl mx-auto px-4 sm:px-6 text-center mt-12 sm:mt-0">
         {/* Badge */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}

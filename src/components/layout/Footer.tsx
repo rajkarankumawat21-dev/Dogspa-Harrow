@@ -199,12 +199,12 @@ export function Footer() {
 
       {/* Bottom Bar */}
       <div className="border-t border-white/10">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-5">
-          <div className="flex flex-col sm:flex-row items-center justify-between gap-3">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-5 pb-40 sm:pb-5">
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-3 text-center sm:text-left">
             <p className="text-white/40 text-xs">
               © {new Date().getFullYear()} DOGSPA Harrow. All rights reserved.
             </p>
-            <div className="flex gap-5">
+            <div className="flex flex-wrap justify-center gap-5">
               <Link
                 href="/privacy"
                 className="text-white/40 hover:text-white/70 text-xs transition-colors"
