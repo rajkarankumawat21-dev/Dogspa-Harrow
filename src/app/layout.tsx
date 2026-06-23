@@ -5,6 +5,7 @@ import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
 import { WhatsAppCTA } from "@/components/layout/WhatsAppCTA";
 import { StickyBookButton } from "@/components/layout/StickyBookButton";
+import { Analytics } from "@vercel/analytics/react";
 
 const playfair = Playfair_Display({
   subsets: ["latin"],
@@ -87,6 +88,7 @@ export default function RootLayout({
           <WhatsAppCTA />
           <StickyBookButton />
         </ThemeProvider>
+        <Analytics />
       </body>
     </html>
   );
