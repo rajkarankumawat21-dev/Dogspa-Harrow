@@ -6,6 +6,7 @@ import { Footer } from "@/components/layout/Footer";
 import { WhatsAppCTA } from "@/components/layout/WhatsAppCTA";
 import { StickyBookButton } from "@/components/layout/StickyBookButton";
 import { Analytics } from "@vercel/analytics/react";
+import { SpeedInsights } from "@vercel/speed-insights/next";
 
 const playfair = Playfair_Display({
   subsets: ["latin"],
@@ -89,6 +90,7 @@ export default function RootLayout({
           <StickyBookButton />
         </ThemeProvider>
         <Analytics />
+        <SpeedInsights />
       </body>
     </html>
   );
