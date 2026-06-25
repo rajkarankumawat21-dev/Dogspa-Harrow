@@ -12,17 +12,17 @@ import {
   Sunrise,
   Sun,
   Sunset,
+  CalendarDays,
+  Dog,
 } from "lucide-react";
 import { services, servicePackages } from "@/data/services";
 
-type Step = 1 | 2 | 3 | 4 | 5;
+type Step = 1 | 2 | 3;
 
 const steps = [
   { num: 1, label: "Service" },
-  { num: 2, label: "Date & Time" },
-  { num: 3, label: "Pet Details" },
-  { num: 4, label: "Your Details" },
-  { num: 5, label: "Confirm" },
+  { num: 2, label: "Time" },
+  { num: 3, label: "Checkout" },
 ];
 
 const timeCategories = [
@@ -74,9 +74,17 @@ export default function BookingPage() {
   const [confirmed, setConfirmed] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
   const [refNum, setRefNum] = useState("");
+  const [isServiceDropdownOpen, setIsServiceDropdownOpen] = useState(false);
 
   const selectService = (id: string, name: string, price: number) => {
-    setBooking({ ...booking, serviceId: id, serviceName: name, servicePrice: price });
+    setBooking({
+      ...booking,
+      serviceId: id,
+      serviceName: name,
+      servicePrice: price,
+    });
+    // Auto-advance after short delay for elegance
+    setTimeout(() => setStep(2), 400);
   };
 
   const depositAmount = Math.round(booking.servicePrice * 0.2);
@@ -84,16 +92,27 @@ export default function BookingPage() {
 
   const canProceed = () => {
     switch (step) {
-      case 1: return booking.serviceId !== "";
-      case 2: return booking.date !== "" && booking.time !== "";
-      case 3: return booking.petName !== "" && booking.petType !== "";
-      case 4: return booking.customerName !== "" && booking.email !== "" && booking.phone !== "";
-      case 5: 
+      case 1:
+        return booking.serviceId !== "";
+      case 2:
+        return booking.date !== "" && booking.time !== "";
+      case 3:
+        const validPet = booking.petName !== "" && booking.petType !== "";
+        const validCust =
+          booking.customerName !== "" &&
+          booking.email !== "" &&
+          booking.phone !== "";
+        let validPayment = true;
         if (booking.paymentMethod === "card") {
-          return booking.cardName.length > 0 && booking.cardNumber.length >= 15 && booking.cardExpiry.length >= 4 && booking.cardCvc.length >= 3;
+          validPayment =
+            booking.cardName.length > 0 &&
+            booking.cardNumber.length >= 15 &&
+            booking.cardExpiry.length >= 4 &&
+            booking.cardCvc.length >= 3;
         }
-        return true;
-      default: return false;
+        return validPet && validCust && validPayment;
+      default:
+        return false;
     }
   };
 
@@ -122,34 +141,31 @@ export default function BookingPage() {
   // Calendar logic
   const year = currentMonthDate.getFullYear();
   const month = currentMonthDate.getMonth();
-  
+
   const firstDayOfMonth = new Date(year, month, 1);
   const lastDayOfMonth = new Date(year, month + 1, 0);
-  
+
   const daysInMonth = lastDayOfMonth.getDate();
-  const startingDayOfWeek = firstDayOfMonth.getDay(); // 0 is Sunday
-  
+  const startingDayOfWeek = firstDayOfMonth.getDay();
+
   const previousMonthLastDay = new Date(year, month, 0).getDate();
-  
+
   const calendarDays = [];
-  
-  // Previous month padded days
+
   for (let i = startingDayOfWeek - 1; i >= 0; i--) {
     calendarDays.push({
       date: new Date(year, month - 1, previousMonthLastDay - i),
       isCurrentMonth: false,
     });
   }
-  
-  // Current month days
+
   for (let i = 1; i <= daysInMonth; i++) {
     calendarDays.push({
       date: new Date(year, month, i),
       isCurrentMonth: true,
     });
   }
-  
-  // Next month padded days to complete grid (42 cells max)
+
   const remainingCells = 42 - calendarDays.length;
   for (let i = 1; i <= remainingCells; i++) {
     calendarDays.push({
@@ -160,34 +176,37 @@ export default function BookingPage() {
 
   if (confirmed) {
     return (
-      <section className="min-h-screen flex items-center justify-center bg-cream px-4 pt-24">
+      <section className="min-h-screen flex items-center justify-center bg-cream dark:bg-[#16161A] px-4 pt-24 pb-12 transition-colors duration-500">
         <motion.div
-          initial={{ opacity: 0, scale: 0.9 }}
-          animate={{ opacity: 1, scale: 1 }}
-          className="bg-white rounded-3xl shadow-elevated p-8 sm:p-12 max-w-lg w-full text-center"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="bg-white dark:bg-[#272730] border border-navy/5 dark:border-white/5 rounded-3xl shadow-xl p-8 sm:p-12 max-w-lg w-full text-center"
         >
-          <div className="w-20 h-20 mx-auto mb-6 rounded-full bg-green-100 flex items-center justify-center">
-            <Check className="w-10 h-10 text-green-600" />
+          <div className="w-20 h-20 mx-auto mb-6 rounded-full bg-green-100 dark:bg-green-900/30 flex items-center justify-center">
+            <Check className="w-10 h-10 text-green-600 dark:text-green-400" />
           </div>
           <h1
-            className="text-3xl font-bold text-navy mb-3"
+            className="text-3xl font-bold text-navy dark:text-white mb-3"
             style={{ fontFamily: "var(--font-heading)" }}
           >
             Booking Confirmed! 🎉
           </h1>
-          <p className="text-charcoal/60 mb-6">
-            Your spa day is booked. We can&apos;t wait to pamper {booking.petName}!
+          <p className="text-charcoal/70 dark:text-gray-400 mb-8">
+            Your spa day is booked. We can&apos;t wait to pamper{" "}
+            {booking.petName}!
           </p>
 
-          <div className="bg-cream rounded-xl p-5 mb-6 text-left space-y-2">
-            <p className="text-sm">
-              <strong>Reference:</strong> {refNum}
+          <div className="bg-cream dark:bg-[#1C1C22] rounded-2xl p-6 mb-8 text-left space-y-3 border border-navy/5 dark:border-white/5">
+            <p className="text-sm dark:text-gray-300">
+              <strong className="text-navy dark:text-white">Reference:</strong>{" "}
+              {refNum}
             </p>
-            <p className="text-sm">
-              <strong>Service:</strong> {booking.serviceName}
+            <p className="text-sm dark:text-gray-300">
+              <strong className="text-navy dark:text-white">Service:</strong>{" "}
+              {booking.serviceName}
             </p>
-            <p className="text-sm">
-              <strong>Date:</strong>{" "}
+            <p className="text-sm dark:text-gray-300">
+              <strong className="text-navy dark:text-white">Date:</strong>{" "}
               {new Date(booking.date).toLocaleDateString("en-GB", {
                 weekday: "long",
                 day: "numeric",
@@ -195,15 +214,14 @@ export default function BookingPage() {
                 year: "numeric",
               })}
             </p>
-            <p className="text-sm">
-              <strong>Time:</strong> {booking.time}
-            </p>
-            <p className="text-sm">
-              <strong>Pet:</strong> {booking.petName} ({booking.breed || booking.petType})
+            <p className="text-sm dark:text-gray-300">
+              <strong className="text-navy dark:text-white">Time:</strong>{" "}
+              {booking.time}
             </p>
             {booking.pickupRequired && (
-              <p className="text-sm">
-                <strong>Pickup:</strong> Yes — we&apos;ll collect {booking.petName}!
+              <p className="text-sm dark:text-gray-300">
+                <strong className="text-navy dark:text-white">Pickup:</strong>{" "}
+                Yes — we&apos;ll collect {booking.petName}!
               </p>
             )}
           </div>
@@ -227,47 +245,71 @@ export default function BookingPage() {
   }
 
   return (
-    <>
-      <section className="min-h-screen bg-cream pt-28 pb-16 px-4">
-        <div className="max-w-3xl mx-auto">
-          {/* Header */}
-          <div className="text-center mb-10">
-            <h1
-              className="text-3xl sm:text-4xl font-bold text-navy mb-2"
-              style={{ fontFamily: "var(--font-heading)" }}
-            >
-              Book Your Spa Day
-            </h1>
-            <p className="text-charcoal/60">
-              Complete the form below to reserve your pet&apos;s luxury grooming
-              session.
-            </p>
-          </div>
+    <section className="min-h-screen bg-cream dark:bg-[#16161A] pt-32 pb-24 px-4 sm:px-6 transition-colors duration-500">
+      <div className="max-w-3xl mx-auto">
+        
+        {/* Header */}
+        <div className="text-center mb-16">
+          <h1
+            className="text-4xl md:text-5xl font-bold text-navy dark:text-white mb-4"
+            style={{ fontFamily: "var(--font-heading)" }}
+          >
+            Book <span className="text-gold">Spa Day</span>
+          </h1>
+          <p className="text-charcoal/60 dark:text-gray-400">
+            Select a service to begin reserving your exclusive grooming session.
+          </p>
+        </div>
 
-          {/* Progress Steps */}
-          <div className="flex items-center justify-between mb-10 max-w-md mx-auto">
-            {steps.map((s, i) => (
-              <div key={s.num} className="flex items-center">
+        {/* Immersive Progress Bar */}
+        <div className="flex items-center justify-between mb-16 relative px-8 sm:px-16">
+          {/* Background track */}
+          <div className="absolute left-8 right-8 sm:left-16 sm:right-16 top-1/2 -translate-y-1/2 h-[2px] bg-charcoal/5 dark:bg-white/5" />
+
+          {/* Active track */}
+          <div
+            className="absolute left-8 sm:left-16 top-1/2 -translate-y-1/2 h-[2px] bg-gold transition-all duration-700 ease-out"
+            style={{
+              width: `calc(${((step - 1) / (steps.length - 1)) * 100}% - 4rem)`,
+            }}
+          />
+
+          {steps.map((s) => {
+            const isActive = step >= s.num;
+            const isCurrent = step === s.num;
+            return (
+              <div
+                key={s.num}
+                className="relative flex flex-col items-center"
+              >
                 <div
-                  className={`w-9 h-9 rounded-full flex items-center justify-center text-sm font-bold transition-all ${step >= s.num
-                      ? "bg-gold text-white"
-                      : "bg-gold/10 text-gold/50"
-                    }`}
+                  className={`w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold transition-all duration-500 z-10 ${
+                    isActive
+                      ? "bg-gold text-white shadow-[0_0_15px_rgba(200,169,81,0.4)]"
+                      : "bg-white dark:bg-[#272730] text-charcoal/30 dark:text-gray-500 border-2 border-charcoal/5 dark:border-white/5"
+                  }`}
                 >
-                  {step > s.num ? <Check className="w-4 h-4" /> : s.num}
+                  {step > s.num ? <Check className="w-5 h-5" /> : s.num}
                 </div>
-                {i < steps.length - 1 && (
-                  <div
-                    className={`w-6 sm:w-10 h-0.5 mx-1 transition-all ${step > s.num ? "bg-gold" : "bg-gold/10"
-                      }`}
-                  />
-                )}
+                <span
+                  className={`absolute -bottom-8 text-xs font-semibold uppercase tracking-wider transition-colors duration-500 whitespace-nowrap ${
+                    isCurrent
+                      ? "text-navy dark:text-white"
+                      : isActive
+                      ? "text-gold"
+                      : "text-charcoal/30 dark:text-gray-600"
+                  }`}
+                >
+                  {s.label}
+                </span>
               </div>
-            ))}
-          </div>
+            );
+          })}
+        </div>
 
-          {/* Step Content */}
-          <div className="bg-white rounded-3xl shadow-card p-6 sm:p-8">
+        {/* Main Form Box */}
+        <div className="bg-white dark:bg-[#272730] rounded-3xl shadow-xl border border-navy/5 dark:border-white/5 p-6 sm:p-10 lg:p-12 transition-colors duration-500">
+          <div className="mt-8">
             <AnimatePresence mode="wait">
               {/* Step 1: Service Selection */}
               {step === 1 && (
@@ -278,80 +320,113 @@ export default function BookingPage() {
                   exit={{ opacity: 0, x: -20 }}
                 >
                   <h2
-                    className="text-xl font-bold text-navy mb-6"
+                    className="text-2xl font-bold text-navy dark:text-white mb-8"
                     style={{ fontFamily: "var(--font-heading)" }}
                   >
-                    Choose Your Service
+                    Select Treatment
                   </h2>
 
-                  <div className="space-y-3 mb-6">
-                    <h3 className="text-sm font-semibold text-gold uppercase tracking-wide">
-                      Individual Services
-                    </h3>
-                    {services.map((s) => (
+                  <div className="space-y-6 mb-10">
+                    <div className="relative">
+                      <label className="text-[10px] font-bold text-charcoal/50 dark:text-gray-400 uppercase tracking-widest absolute top-3 left-4 z-10 pointer-events-none">
+                        Select a Service or Package
+                      </label>
                       <button
-                        key={s.id}
-                        onClick={() => selectService(s.id, s.name, s.priceFrom)}
-                        className={`w-full text-left p-4 rounded-xl border-2 transition-all ${booking.serviceId === s.id
-                            ? "border-gold bg-gold/5"
-                            : "border-gold/10 hover:border-gold/30"
-                          }`}
+                        onClick={() => setIsServiceDropdownOpen(!isServiceDropdownOpen)}
+                        className={`w-full pt-8 pb-3 px-4 rounded-xl border bg-cream dark:bg-[#1C1C22] text-left transition-all ${
+                          isServiceDropdownOpen
+                            ? "border-gold ring-1 ring-gold bg-white dark:bg-[#16161A]"
+                            : "border-transparent hover:border-gold/30"
+                        }`}
                       >
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center gap-3">
-                            <span className="text-2xl">{s.icon}</span>
-                            <div>
-                              <span className="font-semibold text-navy block">
-                                {s.name}
-                              </span>
-                              <span className="text-xs text-charcoal/50">
-                                {s.duration}
-                              </span>
-                            </div>
-                          </div>
-                          <span className="text-gold font-bold">{s.price}</span>
+                        <span className="text-navy dark:text-white font-medium block truncate pr-8">
+                          {booking.serviceName || "Choose an option..."}
+                        </span>
+                        <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-charcoal/40 dark:text-gray-500">
+                          <motion.div animate={{ rotate: isServiceDropdownOpen ? -90 : 90 }}>
+                            <ChevronRight className="w-5 h-5" />
+                          </motion.div>
                         </div>
                       </button>
-                    ))}
-                  </div>
 
-                  <div className="space-y-3">
-                    <h3 className="text-sm font-semibold text-gold uppercase tracking-wide">
-                      Packages
-                    </h3>
-                    {servicePackages.map((p) => (
-                      <button
-                        key={p.id}
-                        onClick={() =>
-                          selectService(p.id, `${p.name} Package`, p.price)
-                        }
-                        className={`w-full text-left p-4 rounded-xl border-2 transition-all ${booking.serviceId === p.id
-                            ? "border-gold bg-gold/5"
-                            : "border-gold/10 hover:border-gold/30"
-                          }`}
-                      >
-                        <div className="flex items-center justify-between">
-                          <div>
-                            <span className="font-semibold text-navy block">
-                              {p.name} Package
-                            </span>
-                            <span className="text-xs text-charcoal/50">
-                              {p.tagline}
-                            </span>
-                          </div>
-                          <div className="text-right">
-                            <span className="text-gold font-bold block">
-                              {p.priceLabel}
-                            </span>
-                            {p.badge && (
-                              <span className="text-xs text-gold/70">
-                                {p.badge}
-                              </span>
-                            )}
-                          </div>
-                        </div>
-                      </button>
-                    ))}
+                      <AnimatePresence>
+                        {isServiceDropdownOpen && (
+                          <motion.div
+                            initial={{ opacity: 0, y: -10 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            exit={{ opacity: 0, y: -10 }}
+                            transition={{ duration: 0.2 }}
+                            className="absolute z-50 w-full mt-2 bg-white dark:bg-[#272730] border border-charcoal/5 dark:border-white/5 rounded-2xl shadow-2xl overflow-hidden"
+                          >
+                            <div className="max-h-[300px] overflow-y-auto custom-scrollbar p-2">
+                              <div className="px-3 py-2 text-[10px] font-bold text-charcoal/40 dark:text-gray-500 uppercase tracking-widest">
+                                Individual Services
+                              </div>
+                              {services.map((s) => (
+                                <button
+                                  key={s.id}
+                                  onClick={() => {
+                                    selectService(s.id, s.name, s.priceFrom);
+                                    setIsServiceDropdownOpen(false);
+                                  }}
+                                  className="w-full flex items-center justify-between p-3 rounded-xl hover:bg-gold/5 dark:hover:bg-white/5 transition-colors group"
+                                >
+                                  <div className="flex items-center gap-3 text-left">
+                                    <span className="text-xl opacity-70 group-hover:opacity-100 transition-opacity">
+                                      {s.icon}
+                                    </span>
+                                    <div>
+                                      <span className="block font-semibold text-sm text-navy dark:text-white">
+                                        {s.name}
+                                      </span>
+                                      <span className="block text-xs text-charcoal/50 dark:text-gray-400">
+                                        {s.duration}
+                                      </span>
+                                    </div>
+                                  </div>
+                                  <span className="text-sm font-bold text-gold">
+                                    {s.price}
+                                  </span>
+                                </button>
+                              ))}
+
+                              <div className="px-3 py-2 mt-2 text-[10px] font-bold text-charcoal/40 dark:text-gray-500 uppercase tracking-widest border-t border-charcoal/5 dark:border-white/5 pt-4">
+                                Value Packages
+                              </div>
+                              {servicePackages.map((p) => (
+                                <button
+                                  key={p.id}
+                                  onClick={() => {
+                                    selectService(p.id, `${p.name} Package`, p.price);
+                                    setIsServiceDropdownOpen(false);
+                                  }}
+                                  className="w-full flex items-center justify-between p-3 rounded-xl hover:bg-gold/5 dark:hover:bg-white/5 transition-colors group"
+                                >
+                                  <div className="text-left">
+                                    <span className="block font-semibold text-sm text-navy dark:text-white">
+                                      {p.name} Package
+                                    </span>
+                                    <span className="block text-xs text-charcoal/50 dark:text-gray-400">
+                                      {p.tagline}
+                                    </span>
+                                  </div>
+                                  <div className="text-right">
+                                    <span className="block text-sm font-bold text-gold">
+                                      {p.priceLabel}
+                                    </span>
+                                    {p.badge && (
+                                      <span className="block text-[9px] uppercase tracking-wider font-bold text-gold/70 mt-0.5">
+                                        {p.badge}
+                                      </span>
+                                    )}
+                                  </div>
+                                </button>
+                              ))}
+                            </div>
+                          </motion.div>
+                        )}
+                      </AnimatePresence>
+                    </div>
                   </div>
                 </motion.div>
               )}
@@ -365,39 +440,50 @@ export default function BookingPage() {
                   exit={{ opacity: 0, x: -20 }}
                 >
                   <h2
-                    className="text-xl font-bold text-navy mb-6"
+                    className="text-2xl font-bold text-navy dark:text-white mb-8"
                     style={{ fontFamily: "var(--font-heading)" }}
                   >
                     Choose Date &amp; Time
                   </h2>
 
-                  {/* Calendar Grid */}
-                  <div className="mb-10">
-                    <div className="flex items-center justify-between mb-6">
-                      <h3 className="text-xl font-bold text-navy dark:text-white">
-                        {currentMonthDate.toLocaleString('default', { month: 'long', year: 'numeric' })}
+                  {/* Minimalist Calendar */}
+                  <div className="mb-12 bg-cream dark:bg-[#1C1C22] rounded-3xl p-6 sm:p-8">
+                    <div className="flex items-center justify-between mb-8">
+                      <h3 className="text-lg font-bold text-navy dark:text-white">
+                        {currentMonthDate.toLocaleString("default", {
+                          month: "long",
+                          year: "numeric",
+                        })}
                       </h3>
-                      <div className="flex items-center gap-2 sm:gap-4">
-                        <button 
+                      <div className="flex items-center gap-4">
+                        <button
                           onClick={() => {
                             const d = new Date();
                             d.setDate(1);
                             setCurrentMonthDate(d);
                           }}
-                          className="text-[11px] sm:text-xs font-bold text-gold hover:text-gold-dark tracking-wider"
+                          className="text-[10px] font-bold text-gold hover:text-gold-dark tracking-widest uppercase"
                         >
-                          TODAY
+                          Today
                         </button>
-                        <div className="flex gap-1 sm:gap-2">
-                          <button 
-                            onClick={() => setCurrentMonthDate(new Date(year, month - 1, 1))}
-                            className="p-1 text-charcoal/80 dark:text-gray-300 hover:text-gold dark:hover:text-gold transition-colors"
+                        <div className="flex gap-2">
+                          <button
+                            onClick={() =>
+                              setCurrentMonthDate(
+                                new Date(year, month - 1, 1)
+                              )
+                            }
+                            className="p-1.5 rounded-full hover:bg-black/5 dark:hover:bg-white/5 text-charcoal/60 dark:text-gray-400 transition-colors"
                           >
                             <ChevronLeft className="w-5 h-5" />
                           </button>
-                          <button 
-                            onClick={() => setCurrentMonthDate(new Date(year, month + 1, 1))}
-                            className="p-1 text-charcoal/80 dark:text-gray-300 hover:text-gold dark:hover:text-gold transition-colors"
+                          <button
+                            onClick={() =>
+                              setCurrentMonthDate(
+                                new Date(year, month + 1, 1)
+                              )
+                            }
+                            className="p-1.5 rounded-full hover:bg-black/5 dark:hover:bg-white/5 text-charcoal/60 dark:text-gray-400 transition-colors"
                           >
                             <ChevronRight className="w-5 h-5" />
                           </button>
@@ -405,54 +491,66 @@ export default function BookingPage() {
                       </div>
                     </div>
 
-                    <div className="grid grid-cols-7 gap-y-4 text-center">
+                    <div className="grid grid-cols-7 gap-y-4 gap-x-1 text-center">
                       {/* Day Headers */}
-                      {['S', 'M', 'T', 'W', 'T', 'F', 'S'].map((day, i) => (
-                        <div key={i} className="text-sm font-semibold text-charcoal/60 dark:text-gray-400 pb-2">
-                          {day}
-                        </div>
-                      ))}
+                      {["Su", "Mo", "Tu", "We", "Th", "Fr", "Sa"].map(
+                        (day, i) => (
+                          <div
+                            key={i}
+                            className="text-[11px] font-bold uppercase tracking-wider text-charcoal/40 dark:text-gray-500 pb-2"
+                          >
+                            {day}
+                          </div>
+                        )
+                      )}
 
                       {/* Date Cells */}
                       {calendarDays.map((dayObj, i) => {
                         const d = dayObj.date;
-                        // Safe timezone formatting
                         const offset = d.getTimezoneOffset() * 60000;
-                        const dateStr = new Date(d.getTime() - offset).toISOString().split("T")[0];
-                        
+                        const dateStr = new Date(d.getTime() - offset)
+                          .toISOString()
+                          .split("T")[0];
+
                         const isSelected = booking.date === dateStr;
                         const isSunday = d.getDay() === 0;
-                        
+
                         const today = new Date();
-                        today.setHours(0,0,0,0);
+                        today.setHours(0, 0, 0, 0);
                         const isPast = d < today;
                         const isDisabled = isPast || isSunday;
 
-                        let textClass = "text-charcoal dark:text-gray-200 font-medium";
-                        if (!dayObj.isCurrentMonth) textClass = "text-charcoal/30 dark:text-gray-600";
-                        if (isDisabled) textClass = "text-charcoal/30 dark:text-gray-600 cursor-not-allowed";
-                        if (isSelected) textClass = "text-gold font-bold";
+                        let textClass =
+                          "text-navy dark:text-gray-200 font-medium";
+                        if (!dayObj.isCurrentMonth)
+                          textClass = "text-charcoal/20 dark:text-gray-600";
+                        if (isDisabled)
+                          textClass =
+                            "text-charcoal/20 dark:text-gray-700 cursor-not-allowed";
+                        if (isSelected) textClass = "text-white font-bold";
 
                         return (
-                          <div key={i} className="flex justify-center items-center h-12">
+                          <div
+                            key={i}
+                            className="flex justify-center items-center h-10 sm:h-12"
+                          >
                             <button
                               disabled={isDisabled}
-                              onClick={() => setBooking({ ...booking, date: dateStr })}
-                              className={`w-10 h-10 rounded-xl flex flex-col items-center justify-center transition-all ${
-                                isSelected 
-                                  ? "border-2 border-gold text-gold" 
+                              onClick={() => {
+                                setBooking({ ...booking, date: dateStr });
+                                if (booking.time) {
+                                  setTimeout(() => setStep(3), 400);
+                                }
+                              }}
+                              className={`w-9 h-9 sm:w-10 sm:h-10 rounded-full flex items-center justify-center transition-all ${
+                                isSelected
+                                  ? "bg-gold shadow-md"
                                   : isDisabled
-                                    ? ""
-                                    : "hover:bg-cream dark:hover:bg-charcoal hover:text-gold dark:hover:text-gold"
+                                  ? ""
+                                  : "hover:bg-gold/10 dark:hover:bg-white/5"
                               } ${textClass}`}
                             >
-                              {/* Display Month Abbr for first days of padded months like the screenshot */}
-                              {!dayObj.isCurrentMonth && d.getDate() === 1 && (
-                                <span className="text-[9px] text-charcoal/40 dark:text-gray-500 font-medium leading-[0.5] mb-0.5">
-                                  {d.toLocaleString('default', { month: 'short' })}
-                                </span>
-                              )}
-                              <span>{d.getDate()}</span>
+                              {d.getDate()}
                             </button>
                           </div>
                         );
@@ -461,31 +559,31 @@ export default function BookingPage() {
                   </div>
 
                   {/* Time Slots */}
-                  <div className="space-y-6">
-                    <h3 className="text-sm font-semibold text-navy flex items-center gap-2 border-b border-gold/10 pb-2">
-                      <Clock className="w-4 h-4 text-gold" />
-                      Select a Time
-                    </h3>
-                    
+                  <div className="space-y-8">
                     {timeCategories.map((category) => {
                       const Icon = category.icon;
                       return (
-                        <div key={category.label} className="space-y-3">
-                          <div className="flex items-center gap-2 text-sm font-medium text-charcoal/70">
+                        <div key={category.label} className="space-y-4">
+                          <div className="flex items-center gap-2 text-sm font-semibold text-charcoal/60 dark:text-gray-400 border-b border-charcoal/5 dark:border-white/5 pb-2">
                             <Icon className="w-4 h-4" />
                             {category.label}
                           </div>
-                          <div className="flex flex-wrap gap-2 sm:gap-3">
+                          <div className="grid grid-cols-3 sm:grid-cols-4 gap-3">
                             {category.slots.map((time) => {
                               const isSelected = booking.time === time;
                               return (
                                 <button
                                   key={time}
-                                  onClick={() => setBooking({ ...booking, time })}
-                                  className={`px-5 py-2.5 rounded-full text-sm font-medium transition-all duration-300 border ${
+                                  onClick={() => {
+                                    setBooking({ ...booking, time });
+                                    if (booking.date) {
+                                      setTimeout(() => setStep(3), 400);
+                                    }
+                                  }}
+                                  className={`py-3 rounded-xl text-sm font-medium transition-all duration-300 border ${
                                     isSelected
-                                      ? "bg-navy border-navy text-white shadow-md transform -translate-y-0.5"
-                                      : "bg-white border-gray-200 hover:border-gold hover:text-gold text-charcoal"
+                                      ? "bg-navy dark:bg-white border-navy dark:border-white text-white dark:text-navy shadow-lg"
+                                      : "bg-transparent border-charcoal/10 dark:border-white/10 hover:border-gold hover:text-gold text-navy dark:text-gray-300"
                                   }`}
                                 >
                                   {time}
@@ -500,7 +598,7 @@ export default function BookingPage() {
                 </motion.div>
               )}
 
-              {/* Step 3: Pet Details */}
+              {/* Step 3: Checkout (Details & Payment) */}
               {step === 3 && (
                 <motion.div
                   key="step3"
@@ -508,470 +606,387 @@ export default function BookingPage() {
                   animate={{ opacity: 1, x: 0 }}
                   exit={{ opacity: 0, x: -20 }}
                 >
-                  <h2
-                    className="text-xl font-bold text-navy mb-6"
-                    style={{ fontFamily: "var(--font-heading)" }}
-                  >
-                    Pet Details
-                  </h2>
+                  {/* Summary Box */}
+                  <div className="mb-10 bg-gold/5 dark:bg-gold/10 border border-gold/20 rounded-2xl p-6">
+                     <h3 className="text-[10px] font-bold text-gold uppercase tracking-widest mb-3">Booking Summary</h3>
+                     <div className="flex justify-between items-start">
+                        <div>
+                           <p className="font-bold text-navy dark:text-white">{booking.serviceName}</p>
+                           {booking.date && booking.time && (
+                              <p className="text-sm text-charcoal/70 dark:text-gray-300 mt-1">
+                                 {new Date(booking.date).toLocaleDateString("en-GB", { weekday: "short", day: "numeric", month: "short"})} at {booking.time}
+                              </p>
+                           )}
+                        </div>
+                        <div className="text-right">
+                           <p className="font-bold text-gold">£{booking.servicePrice}</p>
+                        </div>
+                     </div>
+                  </div>
 
-                  <div className="space-y-5">
-                    <div>
-                      <label className="block text-sm font-medium text-navy mb-1.5">
-                        Pet&apos;s Name *
-                      </label>
-                      <input
-                        type="text"
-                        required
-                        value={booking.petName}
-                        onChange={(e) =>
-                          setBooking({ ...booking, petName: e.target.value })
-                        }
-                        className="w-full px-4 py-3 rounded-xl border border-gold/20 bg-cream focus:border-gold focus:ring-2 focus:ring-gold/20 outline-none transition-all"
-                        placeholder="Biscuit"
-                      />
-                    </div>
-
-                    <div className="grid grid-cols-2 gap-4">
-                      <div>
-                        <label className="block text-sm font-medium text-navy mb-1.5">
-                          Pet Type *
-                        </label>
-                        <select
-                          value={booking.petType}
-                          onChange={(e) =>
-                            setBooking({ ...booking, petType: e.target.value })
-                          }
-                          className="w-full px-4 py-3 rounded-xl border border-gold/20 bg-cream focus:border-gold focus:ring-2 focus:ring-gold/20 outline-none transition-all"
-                        >
-                          <option value="dog">🐶 Dog</option>
-                          <option value="cat">🐱 Cat</option>
-                        </select>
-                      </div>
-                      <div>
-                        <label className="block text-sm font-medium text-navy mb-1.5">
-                          Breed
+                  {/* Section: Pet Details */}
+                  <div className="mb-12">
+                    <h2
+                      className="text-2xl font-bold text-navy dark:text-white mb-6"
+                      style={{ fontFamily: "var(--font-heading)" }}
+                    >
+                      Pet Details
+                    </h2>
+                    <div className="space-y-5">
+                      <div className="relative">
+                        <label className="text-[10px] font-bold text-charcoal/50 dark:text-gray-400 uppercase tracking-widest absolute top-3 left-4">
+                          Pet&apos;s Name *
                         </label>
                         <input
                           type="text"
-                          value={booking.breed}
+                          required
+                          value={booking.petName}
                           onChange={(e) =>
-                            setBooking({ ...booking, breed: e.target.value })
+                            setBooking({
+                              ...booking,
+                              petName: e.target.value,
+                            })
                           }
-                          className="w-full px-4 py-3 rounded-xl border border-gold/20 bg-cream focus:border-gold focus:ring-2 focus:ring-gold/20 outline-none transition-all"
-                          placeholder="Cockapoo"
+                          className="w-full h-[68px] pt-8 pb-3 px-4 rounded-xl border border-transparent bg-cream dark:bg-[#1C1C22] focus:bg-white dark:focus:bg-[#16161A] focus:border-gold focus:ring-1 focus:ring-gold outline-none transition-all text-navy dark:text-white font-medium"
+                          placeholder="Biscuit"
                         />
                       </div>
-                    </div>
 
-                    <div>
-                      <label className="block text-sm font-medium text-navy mb-1.5">
-                        Special Notes
-                      </label>
-                      <textarea
-                        rows={3}
-                        value={booking.notes}
-                        onChange={(e) =>
-                          setBooking({ ...booking, notes: e.target.value })
-                        }
-                        className="w-full px-4 py-3 rounded-xl border border-gold/20 bg-cream focus:border-gold focus:ring-2 focus:ring-gold/20 outline-none transition-all resize-none"
-                        placeholder="Any allergies, anxiety, or special requirements..."
-                      />
-                    </div>
-
-                    <label className="flex items-center gap-3 p-4 rounded-xl bg-blush-light cursor-pointer">
-                      <input
-                        type="checkbox"
-                        checked={booking.pickupRequired}
-                        onChange={(e) =>
-                          setBooking({
-                            ...booking,
-                            pickupRequired: e.target.checked,
-                          })
-                        }
-                        className="w-5 h-5 rounded text-gold focus:ring-gold"
-                      />
-                      <div>
-                        <span className="font-medium text-navy">
-                          🚐 Pickup &amp; Drop-off Required
-                        </span>
-                        <span className="block text-xs text-charcoal/50">
-                          We&apos;ll collect and return your pet within the Harrow
-                          area
-                        </span>
-                      </div>
-                    </label>
-                  </div>
-                </motion.div>
-              )}
-
-              {/* Step 4: Customer Details */}
-              {step === 4 && (
-                <motion.div
-                  key="step4"
-                  initial={{ opacity: 0, x: 20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  exit={{ opacity: 0, x: -20 }}
-                >
-                  <h2
-                    className="text-xl font-bold text-navy mb-6"
-                    style={{ fontFamily: "var(--font-heading)" }}
-                  >
-                    Your Details
-                  </h2>
-
-                  <div className="space-y-5">
-                    <div>
-                      <label className="block text-sm font-medium text-navy mb-1.5">
-                        Full Name *
-                      </label>
-                      <input
-                        type="text"
-                        required
-                        value={booking.customerName}
-                        onChange={(e) =>
-                          setBooking({
-                            ...booking,
-                            customerName: e.target.value,
-                          })
-                        }
-                        className="w-full px-4 py-3 rounded-xl border border-gold/20 bg-cream focus:border-gold focus:ring-2 focus:ring-gold/20 outline-none transition-all"
-                        placeholder="John Smith"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-navy mb-1.5">
-                        Email *
-                      </label>
-                      <input
-                        type="email"
-                        required
-                        value={booking.email}
-                        onChange={(e) =>
-                          setBooking({ ...booking, email: e.target.value })
-                        }
-                        className="w-full px-4 py-3 rounded-xl border border-gold/20 bg-cream focus:border-gold focus:ring-2 focus:ring-gold/20 outline-none transition-all"
-                        placeholder="john@example.com"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-navy mb-1.5">
-                        Mobile Number *
-                      </label>
-                      <input
-                        type="tel"
-                        required
-                        value={booking.phone}
-                        onChange={(e) =>
-                          setBooking({ ...booking, phone: e.target.value })
-                        }
-                        className="w-full px-4 py-3 rounded-xl border border-gold/20 bg-cream focus:border-gold focus:ring-2 focus:ring-gold/20 outline-none transition-all"
-                        placeholder="+44 7000 000 000"
-                      />
-                    </div>
-                  </div>
-                </motion.div>
-              )}
-
-              {/* Step 5: Summary & Payment */}
-              {step === 5 && (
-                <motion.div
-                  key="step5"
-                  initial={{ opacity: 0, x: 20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  exit={{ opacity: 0, x: -20 }}
-                >
-                  <h2
-                    className="text-xl font-bold text-navy mb-6"
-                    style={{ fontFamily: "var(--font-heading)" }}
-                  >
-                    Booking Summary
-                  </h2>
-
-                  <div className="bg-cream rounded-xl p-5 mb-6 space-y-3">
-                    <div className="flex justify-between text-sm">
-                      <span className="text-charcoal/60">Service</span>
-                      <span className="font-semibold text-navy">
-                        {booking.serviceName}
-                      </span>
-                    </div>
-                    <div className="flex justify-between text-sm">
-                      <span className="text-charcoal/60">Date</span>
-                      <span className="font-semibold text-navy">
-                        {new Date(booking.date).toLocaleDateString("en-GB", {
-                          weekday: "short",
-                          day: "numeric",
-                          month: "short",
-                        })}
-                      </span>
-                    </div>
-                    <div className="flex justify-between text-sm">
-                      <span className="text-charcoal/60">Time</span>
-                      <span className="font-semibold text-navy">
-                        {booking.time}
-                      </span>
-                    </div>
-                    <div className="flex justify-between text-sm">
-                      <span className="text-charcoal/60">Pet</span>
-                      <span className="font-semibold text-navy">
-                        {booking.petName}{" "}
-                        {booking.breed && `(${booking.breed})`}
-                      </span>
-                    </div>
-                    <div className="flex justify-between text-sm">
-                      <span className="text-charcoal/60">Customer</span>
-                      <span className="font-semibold text-navy">
-                        {booking.customerName}
-                      </span>
-                    </div>
-                    {booking.pickupRequired && (
-                      <div className="flex justify-between text-sm">
-                        <span className="text-charcoal/60">Pickup</span>
-                        <span className="font-semibold text-navy">
-                          🚐 Yes
-                        </span>
-                      </div>
-                    )}
-                    <div className="border-t border-gold/20 pt-3 flex justify-between">
-                      <span className="font-semibold text-navy">Total</span>
-                      <span className="text-2xl font-bold text-gold">
-                        £{booking.servicePrice}
-                      </span>
-                    </div>
-                  </div>
-
-                  {/* Payment Options */}
-                  <h3 className="text-sm font-semibold text-navy mb-3">
-                    Payment Option
-                  </h3>
-                  <div className="space-y-3 mb-6">
-                    <button
-                      onClick={() =>
-                        setBooking({ ...booking, paymentType: "deposit" })
-                      }
-                      className={`w-full text-left p-4 rounded-xl border-2 transition-all ${booking.paymentType === "deposit"
-                          ? "border-gold bg-gold/5"
-                          : "border-gold/10"
-                        }`}
-                    >
-                      <div className="flex justify-between items-center">
-                        <div>
-                          <span className="font-semibold text-navy block">
-                            Pay 20% Deposit
-                          </span>
-                          <span className="text-xs text-charcoal/50">
-                            Secure your slot — pay the rest on the day
-                          </span>
+                      <div className="grid grid-cols-2 gap-4">
+                        <div className="relative h-[68px]">
+                          <label className="text-[10px] font-bold text-charcoal/50 dark:text-gray-400 uppercase tracking-widest absolute top-3 left-4 z-20 pointer-events-none">
+                            Pet Type *
+                          </label>
+                          <div className="w-full h-full pt-[26px] pb-1.5 px-1.5 rounded-xl border border-transparent bg-cream dark:bg-[#1C1C22] flex gap-1 relative">
+                            {["dog", "cat"].map((type) => {
+                              const isSelected = booking.petType === type;
+                              return (
+                                <button
+                                  key={type}
+                                  type="button"
+                                  onClick={() => setBooking({ ...booking, petType: type })}
+                                  className={`relative w-1/2 h-full rounded-lg text-sm font-bold flex items-center justify-center gap-2 transition-colors duration-300 z-10 ${
+                                    isSelected ? "text-navy dark:text-white" : "text-charcoal/40 hover:text-charcoal/70 dark:text-gray-500 dark:hover:text-gray-300"
+                                  }`}
+                                >
+                                  {isSelected && (
+                                    <motion.div
+                                      layoutId="petTypeActive"
+                                      className="absolute inset-0 bg-white dark:bg-[#2A2A35] shadow-sm border border-black/5 dark:border-white/5 rounded-lg -z-10"
+                                      transition={{ type: "spring", stiffness: 400, damping: 30 }}
+                                    />
+                                  )}
+                                  <span className="text-lg group-hover:scale-110 transition-transform">{type === "dog" ? "🐶" : "🐱"}</span>
+                                  <span className="capitalize">{type}</span>
+                                </button>
+                              );
+                            })}
+                          </div>
                         </div>
-                        <span className="text-gold font-bold text-lg">
-                          £{depositAmount}
-                        </span>
-                      </div>
-                    </button>
-                    <button
-                      onClick={() =>
-                        setBooking({ ...booking, paymentType: "full" })
-                      }
-                      className={`w-full text-left p-4 rounded-xl border-2 transition-all ${booking.paymentType === "full"
-                          ? "border-gold bg-gold/5"
-                          : "border-gold/10"
-                        }`}
-                    >
-                      <div className="flex justify-between items-center">
-                        <div>
-                          <span className="font-semibold text-navy block">
-                            Pay in Full
-                            <span className="ml-2 text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded-full">
-                              Save 5%
-                            </span>
-                          </span>
-                          <span className="text-xs text-charcoal/50">
-                            Full payment with automatic 5% discount
-                          </span>
-                        </div>
-                        <div className="text-right">
-                          <span className="text-gold font-bold text-lg block">
-                            £{fullAmount}
-                          </span>
-                          <span className="text-xs text-charcoal/40 line-through">
-                            £{booking.servicePrice}
-                          </span>
-                        </div>
-                      </div>
-                    </button>
-                  </div>
-
-                  {/* Payment Method */}
-                  <h3 className="text-sm font-semibold text-navy mb-3 mt-8">
-                    Select Payment Method
-                  </h3>
-                  <div className="flex gap-4 mb-6">
-                    <button
-                      onClick={() =>
-                        setBooking({ ...booking, paymentMethod: "card" })
-                      }
-                      className={`flex-1 py-3 px-4 rounded-xl border-2 font-medium transition-all flex items-center justify-center gap-2 ${
-                        booking.paymentMethod === "card"
-                          ? "border-gold bg-gold/5 text-navy"
-                          : "border-gold/10 text-charcoal hover:border-gold/30"
-                      }`}
-                    >
-                      💳 Credit Card
-                    </button>
-                    <button
-                      onClick={() =>
-                        setBooking({ ...booking, paymentMethod: "paypal" })
-                      }
-                      className={`flex-1 py-3 px-4 rounded-xl border-2 font-medium transition-all flex items-center justify-center gap-2 ${
-                        booking.paymentMethod === "paypal"
-                          ? "border-gold bg-gold/5 text-navy"
-                          : "border-gold/10 text-charcoal hover:border-gold/30"
-                      }`}
-                    >
-                      🔵 PayPal
-                    </button>
-                  </div>
-
-                  <AnimatePresence>
-                    {booking.paymentMethod === "card" && (
-                      <motion.div
-                        initial={{ opacity: 0, height: 0 }}
-                        animate={{ opacity: 1, height: "auto" }}
-                        exit={{ opacity: 0, height: 0 }}
-                        className="space-y-4 overflow-hidden mb-6"
-                      >
-                        <div>
-                          <label className="block text-xs font-medium text-charcoal/70 mb-1">
-                            Cardholder Name
+                        <div className="relative">
+                          <label className="text-[10px] font-bold text-charcoal/50 dark:text-gray-400 uppercase tracking-widest absolute top-3 left-4">
+                            Breed
                           </label>
                           <input
                             type="text"
-                            value={booking.cardName}
+                            value={booking.breed}
                             onChange={(e) =>
-                              setBooking({ ...booking, cardName: e.target.value })
+                              setBooking({
+                                ...booking,
+                                breed: e.target.value,
+                              })
                             }
-                            className="w-full px-4 py-2.5 rounded-xl border border-gold/20 bg-cream focus:border-gold focus:ring-2 focus:ring-gold/20 outline-none transition-all"
-                            placeholder="John Smith"
+                            className="w-full h-[68px] pt-8 pb-3 px-4 rounded-xl border border-transparent bg-cream dark:bg-[#1C1C22] focus:bg-white dark:focus:bg-[#16161A] focus:border-gold focus:ring-1 focus:ring-gold outline-none transition-all text-navy dark:text-white font-medium"
+                            placeholder="Cockapoo"
                           />
                         </div>
+                      </div>
+
+                      <div className="relative">
+                        <label className="text-[10px] font-bold text-charcoal/50 dark:text-gray-400 uppercase tracking-widest absolute top-3 left-4">
+                          Special Notes
+                        </label>
+                        <textarea
+                          rows={3}
+                          value={booking.notes}
+                          onChange={(e) =>
+                            setBooking({ ...booking, notes: e.target.value })
+                          }
+                          className="w-full pt-8 pb-3 px-4 rounded-xl border border-transparent bg-cream dark:bg-[#1C1C22] focus:bg-white dark:focus:bg-[#16161A] focus:border-gold focus:ring-1 focus:ring-gold outline-none transition-all resize-none text-navy dark:text-white font-medium"
+                          placeholder="Any allergies or requirements..."
+                        />
+                      </div>
+
+                      <label className="flex items-center gap-4 p-5 rounded-2xl bg-cream dark:bg-[#1C1C22] cursor-pointer group hover:bg-gold/5 dark:hover:bg-white/5 transition-colors border border-transparent hover:border-gold/30">
+                        <input
+                          type="checkbox"
+                          checked={booking.pickupRequired}
+                          onChange={(e) =>
+                            setBooking({
+                              ...booking,
+                              pickupRequired: e.target.checked,
+                            })
+                          }
+                          className="w-5 h-5 rounded text-gold focus:ring-gold border-charcoal/20 dark:border-white/20 bg-white dark:bg-[#272730]"
+                        />
                         <div>
-                          <label className="block text-xs font-medium text-charcoal/70 mb-1">
-                            Card Number
+                          <span className="font-semibold text-navy dark:text-white block mb-0.5">
+                            Pickup &amp; Drop-off
+                          </span>
+                          <span className="block text-sm text-charcoal/60 dark:text-gray-400">
+                            We&apos;ll collect and return your pet within
+                            Harrow
+                          </span>
+                        </div>
+                      </label>
+                    </div>
+                  </div>
+
+                  {/* Section: Your Details */}
+                  <div className="mb-12">
+                    <h2
+                      className="text-2xl font-bold text-navy dark:text-white mb-6"
+                      style={{ fontFamily: "var(--font-heading)" }}
+                    >
+                      Your Details
+                    </h2>
+                    <div className="space-y-5">
+                      <div className="relative">
+                        <label className="text-[10px] font-bold text-charcoal/50 dark:text-gray-400 uppercase tracking-widest absolute top-3 left-4">
+                          Full Name *
+                        </label>
+                        <input
+                          type="text"
+                          required
+                          value={booking.customerName}
+                          onChange={(e) =>
+                            setBooking({
+                              ...booking,
+                              customerName: e.target.value,
+                            })
+                          }
+                          className="w-full pt-8 pb-3 px-4 rounded-xl border border-transparent bg-cream dark:bg-[#1C1C22] focus:bg-white dark:focus:bg-[#16161A] focus:border-gold focus:ring-1 focus:ring-gold outline-none transition-all text-navy dark:text-white font-medium"
+                          placeholder="John Smith"
+                        />
+                      </div>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div className="relative">
+                          <label className="text-[10px] font-bold text-charcoal/50 dark:text-gray-400 uppercase tracking-widest absolute top-3 left-4">
+                            Email *
+                          </label>
+                          <input
+                            type="email"
+                            required
+                            value={booking.email}
+                            onChange={(e) =>
+                              setBooking({
+                                ...booking,
+                                email: e.target.value,
+                              })
+                            }
+                            className="w-full pt-8 pb-3 px-4 rounded-xl border border-transparent bg-cream dark:bg-[#1C1C22] focus:bg-white dark:focus:bg-[#16161A] focus:border-gold focus:ring-1 focus:ring-gold outline-none transition-all text-navy dark:text-white font-medium"
+                            placeholder="john@example.com"
+                          />
+                        </div>
+                        <div className="relative">
+                          <label className="text-[10px] font-bold text-charcoal/50 dark:text-gray-400 uppercase tracking-widest absolute top-3 left-4">
+                            Mobile Number *
+                          </label>
+                          <input
+                            type="tel"
+                            required
+                            value={booking.phone}
+                            onChange={(e) =>
+                              setBooking({
+                                ...booking,
+                                phone: e.target.value,
+                              })
+                            }
+                            className="w-full pt-8 pb-3 px-4 rounded-xl border border-transparent bg-cream dark:bg-[#1C1C22] focus:bg-white dark:focus:bg-[#16161A] focus:border-gold focus:ring-1 focus:ring-gold outline-none transition-all text-navy dark:text-white font-medium"
+                            placeholder="+44 7000 000 000"
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Section: Payment */}
+                  <div>
+                    <h2
+                      className="text-2xl font-bold text-navy dark:text-white mb-6"
+                      style={{ fontFamily: "var(--font-heading)" }}
+                    >
+                      Payment
+                    </h2>
+
+                    {/* Deposit vs Full Tabs */}
+                    <div className="flex bg-cream dark:bg-[#1C1C22] p-1.5 rounded-2xl mb-8">
+                      <button
+                        onClick={() =>
+                          setBooking({ ...booking, paymentType: "deposit" })
+                        }
+                        className={`flex-1 py-3 text-sm font-bold uppercase tracking-wider rounded-xl transition-all ${
+                          booking.paymentType === "deposit"
+                            ? "bg-white dark:bg-[#272730] text-navy dark:text-white shadow-sm"
+                            : "text-charcoal/50 dark:text-gray-500 hover:text-navy dark:hover:text-gray-300"
+                        }`}
+                      >
+                        Pay 20% Deposit
+                      </button>
+                      <button
+                        onClick={() =>
+                          setBooking({ ...booking, paymentType: "full" })
+                        }
+                        className={`flex-1 py-3 text-sm font-bold uppercase tracking-wider rounded-xl transition-all ${
+                          booking.paymentType === "full"
+                            ? "bg-white dark:bg-[#272730] text-navy dark:text-white shadow-sm"
+                            : "text-charcoal/50 dark:text-gray-500 hover:text-navy dark:hover:text-gray-300"
+                        }`}
+                      >
+                        Pay In Full (-5%)
+                      </button>
+                    </div>
+
+                    {/* Card Details */}
+                    <div className="space-y-5">
+                      <div className="relative">
+                        <label className="text-[10px] font-bold text-charcoal/50 dark:text-gray-400 uppercase tracking-widest absolute top-3 left-4">
+                          Cardholder Name
+                        </label>
+                        <input
+                          type="text"
+                          value={booking.cardName}
+                          onChange={(e) =>
+                            setBooking({
+                              ...booking,
+                              cardName: e.target.value,
+                            })
+                          }
+                          className="w-full pt-8 pb-3 px-4 rounded-xl border border-transparent bg-cream dark:bg-[#1C1C22] focus:bg-white dark:focus:bg-[#16161A] focus:border-gold focus:ring-1 focus:ring-gold outline-none transition-all text-navy dark:text-white font-medium"
+                          placeholder="John Smith"
+                        />
+                      </div>
+                      <div className="relative">
+                        <label className="text-[10px] font-bold text-charcoal/50 dark:text-gray-400 uppercase tracking-widest absolute top-3 left-4">
+                          Card Number
+                        </label>
+                        <input
+                          type="text"
+                          maxLength={19}
+                          value={booking.cardNumber}
+                          onChange={(e) => {
+                            let val = e.target.value.replace(/\D/g, "");
+                            val = val.replace(/(.{4})/g, "$1 ").trim();
+                            setBooking({ ...booking, cardNumber: val });
+                          }}
+                          className="w-full pt-8 pb-3 px-4 rounded-xl border border-transparent bg-cream dark:bg-[#1C1C22] focus:bg-white dark:focus:bg-[#16161A] focus:border-gold focus:ring-1 focus:ring-gold outline-none transition-all text-navy dark:text-white font-medium font-mono text-lg"
+                          placeholder="0000 0000 0000 0000"
+                        />
+                      </div>
+                      <div className="grid grid-cols-2 gap-4">
+                        <div className="relative">
+                          <label className="text-[10px] font-bold text-charcoal/50 dark:text-gray-400 uppercase tracking-widest absolute top-3 left-4">
+                            Expiry
                           </label>
                           <input
                             type="text"
-                            maxLength={19}
-                            value={booking.cardNumber}
+                            maxLength={5}
+                            value={booking.cardExpiry}
                             onChange={(e) => {
-                              // Auto format with spaces
                               let val = e.target.value.replace(/\D/g, "");
-                              val = val.replace(/(.{4})/g, "$1 ").trim();
-                              setBooking({ ...booking, cardNumber: val });
+                              if (val.length >= 2) {
+                                val = val.slice(0, 2) + "/" + val.slice(2);
+                              }
+                              setBooking({ ...booking, cardExpiry: val });
                             }}
-                            className="w-full px-4 py-2.5 rounded-xl border border-gold/20 bg-cream focus:border-gold focus:ring-2 focus:ring-gold/20 outline-none transition-all"
-                            placeholder="0000 0000 0000 0000"
+                            className="w-full pt-8 pb-3 px-4 rounded-xl border border-transparent bg-cream dark:bg-[#1C1C22] focus:bg-white dark:focus:bg-[#16161A] focus:border-gold focus:ring-1 focus:ring-gold outline-none transition-all text-navy dark:text-white font-medium font-mono text-lg"
+                            placeholder="MM/YY"
                           />
                         </div>
-                        <div className="grid grid-cols-2 gap-4">
-                          <div>
-                            <label className="block text-xs font-medium text-charcoal/70 mb-1">
-                              Expiry Date
-                            </label>
-                            <input
-                              type="text"
-                              maxLength={5}
-                              value={booking.cardExpiry}
-                              onChange={(e) => {
-                                let val = e.target.value.replace(/\D/g, "");
-                                if (val.length >= 2) {
-                                  val = val.slice(0, 2) + "/" + val.slice(2);
-                                }
-                                setBooking({ ...booking, cardExpiry: val });
-                              }}
-                              className="w-full px-4 py-2.5 rounded-xl border border-gold/20 bg-cream focus:border-gold focus:ring-2 focus:ring-gold/20 outline-none transition-all"
-                              placeholder="MM/YY"
-                            />
-                          </div>
-                          <div>
-                            <label className="block text-xs font-medium text-charcoal/70 mb-1">
-                              CVC
-                            </label>
-                            <input
-                              type="text"
-                              maxLength={4}
-                              value={booking.cardCvc}
-                              onChange={(e) =>
-                                setBooking({
-                                  ...booking,
-                                  cardCvc: e.target.value.replace(/\D/g, ""),
-                                })
-                              }
-                              className="w-full px-4 py-2.5 rounded-xl border border-gold/20 bg-cream focus:border-gold focus:ring-2 focus:ring-gold/20 outline-none transition-all"
-                              placeholder="123"
-                            />
-                          </div>
+                        <div className="relative">
+                          <label className="text-[10px] font-bold text-charcoal/50 dark:text-gray-400 uppercase tracking-widest absolute top-3 left-4">
+                            CVC
+                          </label>
+                          <input
+                            type="text"
+                            maxLength={4}
+                            value={booking.cardCvc}
+                            onChange={(e) =>
+                              setBooking({
+                                ...booking,
+                                cardCvc: e.target.value.replace(/\D/g, ""),
+                              })
+                            }
+                            className="w-full pt-8 pb-3 px-4 rounded-xl border border-transparent bg-cream dark:bg-[#1C1C22] focus:bg-white dark:focus:bg-[#16161A] focus:border-gold focus:ring-1 focus:ring-gold outline-none transition-all text-navy dark:text-white font-medium font-mono text-lg"
+                            placeholder="123"
+                          />
                         </div>
-                      </motion.div>
-                    )}
-                  </AnimatePresence>
+                      </div>
+                    </div>
+                  </div>
                 </motion.div>
               )}
             </AnimatePresence>
 
-            {/* Navigation */}
-            <div className="flex items-center justify-between mt-8 pt-6 border-t border-gold/10">
+            {/* INLINE Navigation Bar */}
+            <div className="flex items-center justify-between mt-12 pt-8 border-t border-charcoal/10 dark:border-white/10">
               {step > 1 ? (
                 <button
                   onClick={() => setStep((step - 1) as Step)}
-                  className="flex items-center gap-2 text-charcoal/60 hover:text-navy transition-colors font-medium"
+                  className="flex items-center gap-2 text-charcoal/50 hover:text-navy dark:text-gray-500 dark:hover:text-white transition-colors font-medium tracking-wide"
                 >
-                  <ChevronLeft className="w-4 h-4" />
-                  Back
+                  <ChevronLeft className="w-5 h-5" /> Back
                 </button>
               ) : (
-                <div />
+                <div /> // Spacer
               )}
 
-              {step < 5 ? (
+              {step < 3 ? (
                 <button
                   onClick={() => canProceed() && setStep((step + 1) as Step)}
                   disabled={!canProceed()}
-                  className={`flex items-center gap-2 py-3 px-6 rounded-xl font-semibold transition-all ${canProceed()
-                      ? "bg-gold text-white hover:bg-gold-dark"
-                      : "bg-gold/20 text-gold/50 cursor-not-allowed"
-                    }`}
+                  className={`flex items-center gap-3 py-3 px-8 rounded-full font-bold uppercase tracking-widest text-sm transition-all duration-300 ${
+                    canProceed()
+                      ? "bg-gold text-white hover:bg-gold-dark hover:scale-105 shadow-xl hover:shadow-2xl shadow-gold/20"
+                      : "bg-charcoal/5 dark:bg-white/5 text-charcoal/30 dark:text-gray-600 cursor-not-allowed"
+                  }`}
                 >
-                  Continue
+                  Next Step
                   <ChevronRight className="w-4 h-4" />
                 </button>
               ) : (
                 <button
                   onClick={handleConfirm}
                   disabled={!canProceed() || isProcessing}
-                  className={`flex items-center gap-2 py-3 px-8 rounded-xl font-semibold shadow-gold transition-all duration-300 ${
+                  className={`flex items-center gap-3 py-3 px-8 rounded-full font-bold uppercase tracking-widest text-sm transition-all duration-300 ${
                     canProceed() && !isProcessing
-                      ? "bg-gold text-white hover:bg-gold-dark hover:-translate-y-0.5 hover:shadow-lg"
-                      : "bg-gold/40 text-white cursor-not-allowed"
+                      ? "bg-gold text-white hover:bg-gold-dark hover:scale-105 shadow-xl hover:shadow-2xl shadow-gold/20"
+                      : "bg-charcoal/5 dark:bg-white/5 text-charcoal/30 dark:text-gray-600 cursor-not-allowed"
                   }`}
                 >
                   {isProcessing ? (
                     <motion.div
                       animate={{ rotate: 360 }}
-                      transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+                      transition={{
+                        duration: 1,
+                        repeat: Infinity,
+                        ease: "linear",
+                      }}
                       className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full"
                     />
-                  ) : (
-                    <Sparkles className="w-5 h-5" />
-                  )}
+                  ) : null}
                   <span>
-                    {isProcessing ? "Processing..." : `Confirm & Pay £${booking.paymentType === "deposit" ? depositAmount : fullAmount}`}
+                    Pay £
+                    {booking.paymentType === "deposit"
+                      ? depositAmount
+                      : fullAmount}
                   </span>
                 </button>
               )}
             </div>
           </div>
         </div>
-      </section>
-    </>
+      </div>
+    </section>
   );
 }

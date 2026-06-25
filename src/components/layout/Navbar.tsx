@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { usePathname } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion, AnimatePresence, useScroll, useSpring } from "framer-motion";
 import { Menu, X, Phone, Calendar } from "lucide-react";
 
 const navLinks = [
@@ -24,6 +24,14 @@ export function Navbar() {
   const isLightHero = pathname === "/booking";
   const isScrolledOrLight = isScrolled || isLightHero;
 
+  // Scroll Progress Indicator
+  const { scrollYProgress } = useScroll();
+  const scaleX = useSpring(scrollYProgress, {
+    stiffness: 100,
+    damping: 30,
+    restDelta: 0.001
+  });
+
   useEffect(() => {
     const handleScroll = () => {
       setIsScrolled(window.scrollY > 50);
@@ -34,6 +42,12 @@ export function Navbar() {
 
   return (
     <>
+      {/* Scroll Progress Bar */}
+      <motion.div
+        className="fixed top-0 left-0 right-0 h-[3px] bg-gold origin-left z-[60]"
+        style={{ scaleX }}
+      />
+
       <motion.nav
         initial={{ y: -100 }}
         animate={{ y: 0 }}

@@ -6,6 +6,7 @@ import { GalleryPreview } from "@/components/home/GalleryPreview";
 import { TestimonialsSection } from "@/components/home/TestimonialsSection";
 import { WhyChooseUs } from "@/components/home/WhyChooseUs";
 import { FAQSection } from "@/components/home/FAQSection";
+import { InteractivePaws } from "@/components/home/InteractivePaws";
 import { Calendar, MessageCircle } from "lucide-react";
 
 export default function HomePage() {
@@ -107,35 +108,7 @@ export default function HomePage() {
       {/* Final CTA Banner */}
       <section className="relative py-20 sm:py-28 overflow-hidden">
         <div className="absolute inset-0 bg-gradient-gold" />
-        <div className="absolute inset-0 pointer-events-none">
-          {[
-            { left: "5%", top: "15%", rotate: "45deg" },
-            { left: "18%", top: "65%", rotate: "-20deg" },
-            { left: "15%", top: "35%", rotate: "110deg" },
-            { left: "38%", top: "80%", rotate: "15deg" },
-            { left: "60%", top: "12%", rotate: "85deg" },
-            { left: "65%", top: "70%", rotate: "-120deg" },
-            { left: "75%", top: "35%", rotate: "10deg" },
-            { left: "85%", top: "85%", rotate: "-45deg" },
-            { left: "92%", top: "20%", rotate: "135deg" },
-            { left: "12%", top: "88%", rotate: "-80deg" },
-            { left: "48%", top: "92%", rotate: "20deg" },
-            { left: "72%", top: "8%", rotate: "160deg" },
-            { left: "35%", top: "5%", rotate: "-30deg" },
-          ].map((paw, i) => (
-            <span
-              key={i}
-              className="absolute text-5xl sm:text-6xl opacity-30 dark:opacity-60 dark:brightness-125 transition-all duration-500"
-              style={{
-                left: paw.left,
-                top: paw.top,
-                transform: `rotate(${paw.rotate})`,
-              }}
-            >
-              🐾
-            </span>
-          ))}
-        </div>
+        <InteractivePaws />
         <div className="relative z-10 text-center px-4">
           <h2
             className="text-3xl sm:text-4xl lg:text-5xl font-bold text-navy dark:text-white mb-4"

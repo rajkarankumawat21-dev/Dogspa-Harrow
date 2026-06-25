@@ -148,6 +148,33 @@ function SlideWrapper({
   );
 }
 
+function MobileGlassCard({ scene, index }: { scene: typeof storyScenes[0]; index: number }) {
+  const { theme } = useTheme();
+  const cardBgColor = theme === "dark" ? "#272730" : "#FFFFFF";
+  const textColor = theme === "dark" ? "text-white" : "text-navy";
+  const descColor = theme === "dark" ? "text-gray-400" : "text-charcoal/70";
+  const gradient = gradients[index];
+
+  return (
+    <div className="relative w-full h-[65vh] max-h-[600px] shadow-2xl rounded-[30px] sm:rounded-[40px]">
+      <div className="absolute inset-0 opacity-60 rounded-[30px] sm:rounded-[40px] pointer-events-none" style={{ background: gradient, filter: "blur(20px)" }} />
+      <div className="relative w-full h-full rounded-[30px] sm:rounded-[40px] z-10 overflow-hidden flex flex-col" style={{ background: `linear-gradient(${cardBgColor}, ${cardBgColor}) padding-box, ${gradient} border-box` }}>
+        {/* Image Side */}
+        <div className="w-full h-[45%] relative overflow-hidden shrink-0">
+           <Image src={scene.image} alt={scene.title} fill className="object-cover" sizes="85vw" priority={index === 0} />
+           <div className="absolute top-4 left-4 w-10 h-10 rounded-full bg-gold text-white flex items-center justify-center text-base font-bold shadow-lg z-10">{scene.id}</div>
+        </div>
+        {/* Text Side */}
+        <div className="w-full flex-grow p-5 sm:p-6 flex flex-col justify-center">
+           <span className="text-gold text-xs sm:text-sm font-semibold uppercase tracking-widest mb-1 sm:mb-2">Step {scene.id}</span>
+           <h3 className={`font-medium text-2xl sm:text-3xl mb-2 sm:mb-3 tracking-tight ${textColor}`} style={{ fontFamily: "var(--font-heading)" }}>{scene.title}</h3>
+           <p className={`text-sm sm:text-base leading-relaxed ${descColor}`}>{scene.description}</p>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export function StorySection() {
   const targetRef = useRef<HTMLDivElement>(null);
   const { scrollYProgress } = useScroll({
@@ -171,7 +198,8 @@ export function StorySection() {
   const pointerEvents = useTransform(smoothProgress, [0.90, 0.95], ["none", "auto"]);
 
   return (
-    <section ref={targetRef} className={`relative z-20 h-[800vh] transition-colors duration-500 ${theme === 'dark' ? 'bg-[#16161A]' : 'bg-cream'}`}>
+    <>
+      <section ref={targetRef} className={`hidden md:block relative z-20 h-[800vh] transition-colors duration-500 ${theme === 'dark' ? 'bg-[#16161A]' : 'bg-cream'}`}>
       <div className="sticky top-0 h-screen w-full flex flex-col justify-center overflow-hidden">
         
         {/* Header - Stays visible statically */}
@@ -236,5 +264,50 @@ export function StorySection() {
         </div>
       </div>
     </section>
+
+      {/* MOBILE VIEW: Horizontal Swipe Carousel */}
+      <section className={`md:hidden relative z-20 py-20 overflow-hidden transition-colors duration-500 ${theme === 'dark' ? 'bg-[#16161A]' : 'bg-cream'}`}>
+        <div className="text-center px-4 mb-8">
+          <span className="text-gold text-xs font-semibold uppercase tracking-widest">
+            The DOGSPA Journey
+          </span>
+          <h2
+            className={`text-3xl sm:text-4xl font-bold mt-2 mb-3 ${theme === 'dark' ? 'text-white' : 'text-navy'}`}
+            style={{ fontFamily: "var(--font-heading)" }}
+          >
+            A Day at the Spa
+          </h2>
+          <p className={`text-sm sm:text-base max-w-xs mx-auto ${theme === 'dark' ? 'text-gray-400' : 'text-charcoal/70'}`}>
+            Swipe to explore the ultimate luxury grooming journey.
+          </p>
+        </div>
+
+        {/* Swipeable Container */}
+        <div className="w-full flex overflow-x-auto snap-x snap-mandatory gap-6 px-6 pb-12 pt-4 [&::-webkit-scrollbar]:hidden" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
+          {storyScenes.map((scene, index) => (
+            <div key={scene.id} className="min-w-[85vw] sm:min-w-[400px] max-w-[400px] snap-center shrink-0">
+              <MobileGlassCard scene={scene} index={index} />
+            </div>
+          ))}
+
+          {/* CTA Card */}
+          <div className="min-w-[85vw] sm:min-w-[400px] max-w-[400px] snap-center shrink-0 flex flex-col items-center justify-center bg-navy rounded-[30px] sm:rounded-[40px] p-8 shadow-2xl text-center border border-white/10 h-[65vh] max-h-[600px]">
+            <h3 className="text-3xl font-bold text-white mb-4 leading-tight" style={{ fontFamily: "var(--font-heading)" }}>
+              Ready for Your Pet's Transformation?
+            </h3>
+            <p className="text-cream/80 text-sm sm:text-base mb-8">
+              Experience the luxury of DOGSPA. Appointments are limited.
+            </p>
+            <Link
+              href="/booking"
+              className="inline-flex items-center justify-center gap-2 bg-gold text-white px-8 py-4 rounded-full font-semibold hover:bg-white hover:text-navy transition-colors duration-300 shadow-lg text-lg w-full"
+            >
+              <Calendar className="w-5 h-5" />
+              <span>Book Spa Day</span>
+            </Link>
+          </div>
+        </div>
+      </section>
+    </>
   );
 }
