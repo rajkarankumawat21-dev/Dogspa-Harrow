@@ -48,14 +48,6 @@ export const metadata: Metadata = {
     title: "DOGSPA Harrow | Luxury Pet Grooming & Wellness",
     description:
       "Premium one-to-one dog and cat grooming in Harrow. Luxury spa treatments and a calm, nurturing environment.",
-    images: [
-      {
-        url: "/images/hero.png",
-        width: 1200,
-        height: 630,
-        alt: "DOGSPA Harrow - Luxury Pet Grooming",
-      },
-    ],
   },
   twitter: {
     card: "summary_large_image",
@@ -89,6 +81,25 @@ export default function RootLayout({
           <WhatsAppCTA />
           <StickyBookButton />
         </ThemeProvider>
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              "@context": "https://schema.org",
+              "@type": "LocalBusiness",
+              name: "DOGSPA Harrow",
+              image: "https://dogspa.co.uk/images/hero.png",
+              description: "Premium one-to-one dog and cat grooming in Harrow. Luxury spa treatments and a calm, nurturing environment.",
+              address: {
+                "@type": "PostalAddress",
+                addressLocality: "Harrow",
+                addressRegion: "ENG",
+                addressCountry: "UK"
+              },
+              priceRange: "£££"
+            })
+          }}
+        />
         <Analytics />
         <SpeedInsights />
       </body>
