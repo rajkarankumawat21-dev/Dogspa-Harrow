@@ -88,15 +88,6 @@ export default function RootLayout({
     <html lang="en" className={`${playfair.variable} ${inter.variable}`} suppressHydrationWarning>
       <head>
         <link rel="icon" href="/images/logo.png" type="image/png" />
-      </head>
-      <body className="antialiased bg-white dark:bg-[#16161A] text-charcoal dark:text-white/90 transition-colors duration-300">
-        <ThemeProvider>
-          <Navbar />
-          <main>{children}</main>
-          <Footer />
-          <WhatsAppCTA />
-          <StickyBookButton />
-        </ThemeProvider>
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{
@@ -116,6 +107,15 @@ export default function RootLayout({
             })
           }}
         />
+      </head>
+      <body className="antialiased bg-white dark:bg-[#16161A] text-charcoal dark:text-white/90 transition-colors duration-300">
+        <ThemeProvider>
+          <Navbar />
+          <main>{children}</main>
+          <Footer />
+          <WhatsAppCTA />
+          <StickyBookButton />
+        </ThemeProvider>
         <Analytics />
         <SpeedInsights />
       </body>
