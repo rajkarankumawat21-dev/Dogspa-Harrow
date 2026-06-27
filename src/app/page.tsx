@@ -19,14 +19,13 @@ export default function HomePage() {
           __html: JSON.stringify({
             "@context": "https://schema.org",
             "@type": "LocalBusiness",
-            "@id": "https://dogspa.co.uk",
-            name: "DOGSPA Harrow",
-            description:
-              "Premium one-to-one dog and cat grooming and spa treatments in Harrow, London. Luxury pet wellness in a calm, nurturing environment.",
-            url: "https://dogspa.co.uk",
-            telephone: "+447000000000",
+            "@id": "https://dogspa-harrow.vercel.app",
+            name: "DOGSPA",
+            description: "Luxury Dog & Cat Grooming in Harrow",
+            url: "https://dogspa-harrow.vercel.app",
+            telephone: "+44 7123 456789",
             email: "hello@dogspa.co.uk",
-            image: "https://dogspa.co.uk/images/hero.png",
+            image: "https://dogspa-harrow.vercel.app/images/hero.png",
             priceRange: "££",
             address: {
               "@type": "PostalAddress",

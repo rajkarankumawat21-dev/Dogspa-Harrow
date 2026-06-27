@@ -56,7 +56,7 @@ export const metadata: Metadata = {
   openGraph: {
     type: "website",
     locale: "en_GB",
-    url: "https://dogspa.co.uk",
+    url: "https://dogspa-harrow.vercel.app",
     siteName: "DOGSPA Harrow",
     title: "DOGSPA Harrow | Luxury Pet Grooming & Wellness",
     description:
@@ -104,7 +104,7 @@ export default function RootLayout({
               "@context": "https://schema.org",
               "@type": "LocalBusiness",
               name: "DOGSPA Harrow",
-              image: "https://dogspa.co.uk/images/hero.png",
+              image: "https://dogspa-harrow.vercel.app/images/hero.png",
               description: "Premium one-to-one dog and cat grooming in Harrow. Luxury spa treatments and a calm, nurturing environment.",
               address: {
                 "@type": "PostalAddress",
