@@ -68,6 +68,9 @@ export const metadata: Metadata = {
     description:
       "Premium one-to-one dog and cat grooming in Harrow. Book your pet's spa day.",
   },
+  verification: {
+    google: "giAmb6SDBzDAJBJh74Z18EZYBqggoicNYIVEUwV49hY",
+  },
   robots: {
     index: true,
     follow: true,
